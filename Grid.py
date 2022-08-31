@@ -25,15 +25,10 @@ class Grid:
 
             x_supposed = (el - 1) % self.size
             y_supposed = (el -1 ) // self.size
-            counter += abs( x - x_supposed) + abs( y - y_supposed )
+                
                 
         return counter
 
-    def element_in_row(self, el):
-        if (el-1) // self.size == self.listGrid.index(el) // self.size:
-            return True
-
-    def element_in_col(self, el):
         if (el-1) % self.size == self.listGrid.index(el) % self.size:
             return True
     
@@ -70,7 +65,6 @@ class Grid:
             case "up":
                 self.swap(zero_index, zero_index-self.size)
             case "down":
-                
                 self.swap(zero_index, zero_index+self.size)
             case "left":
                 self.swap(zero_index, zero_index-1)
@@ -91,7 +85,7 @@ class Grid:
         return move
 
     def shuffle_grid(self):
-        randMovesAmount = 100
+        randMovesAmount = 50
 
         for i in range(randMovesAmount):
             move = self.rand_move()
@@ -106,41 +100,37 @@ class Grid:
         # while not self.check_if_possible_to_complete():  #or self.get_cheapest_path() > 20
         #     random.shuffle(self.listGrid)  
 
-        
-
-    def to_snake(self):
-        snake = []
-        for i in range(self.size):
-            if i%2==0:
-                snake.extend(self.listGrid[i*self.size:(i+1)*self.size])
-            else:
-                snake.extend(self.listGrid[i*self.size:(i+1)*self.size][::-1])
-        
-        return snake
+    def opposite_move(self, move):
+        if move == 'right':
+            return 'left'
+        if move == 'left':
+            return 'right'
+        if move == 'up':
+            return 'down'
+        if move == 'down':
+            return 'up'
 
     def check_if_possible_to_complete(self):
         zero_index = abs(self.size - self.listGrid.index(0)//self.size)
         listGridCopy = [num for num in self.listGrid if num != 0]
         
-        invariable_counter = 0
+        inversion_counter = 0
         for i in range(len(listGridCopy)):
             for j in range(i+1, len(listGridCopy)):
                 if(listGridCopy[i] > listGridCopy[j]):
-                    invariable_counter+=1
+                    inversion_counter+=1
 
         if zero_index %2 == 1:
-            if invariable_counter % 2 == 0:
+            if inversion_counter % 2 == 0:
                 return True 
         else:
-            if invariable_counter % 2 == 1:
+            if inversion_counter % 2 == 1:
                 return True 
         return False
 
     def check_if_complete(self):
         temp = [num for num in self.listGrid if num != 0]
-        # print(temp)
-        for i in range(1,self.size**2-1):
-            # print(temp[i], temp[i-1])
+        for i in range(1,len(temp)):
             if(temp[i] < temp[i-1]):
                 return False
         

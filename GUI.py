@@ -25,7 +25,7 @@ class GUI:
         self.root = tk.Tk()
         self.root.geometry("500x350")
         self.root.resizable(False,False)
-        self.root.title("гра в п`ятнашки")
+        self.root.title("гра в 15")
         self.mainFrame = tk.Frame(self.root)
 
         self.draw_menu_frame()
@@ -41,11 +41,10 @@ class GUI:
         
         return buttonList
 
-    def draw_frame(self):
-        # print(self.grid.check_if_complete())        
+    def draw_frame(self):        
         if not self.grid.check_if_complete():
             self.draw_game_frame()
-        else:
+        else:                
             self.draw_win_frame()
 
     def start_rand_level(self):
@@ -93,8 +92,10 @@ class GUI:
 
         self.mainFrame.pack(fill="x")
 
-    def move_zero(self, directions):
-        self.grid.move_zero(directions.pop(0))
+    def auto_move_zero(self, directions):
+        self.game.taken_steps.insert(0, directions[0])
+        direction = directions.pop(0)
+        self.grid.move_zero(direction)
         self.game.move_count+=1
         self.draw_game_frame_with_assist(directions)
         
@@ -103,7 +104,6 @@ class GUI:
         if directions:
             self.mainFrame.destroy()
             self.mainFrame = tk.Frame(self.root)
-            # self.mainFrame.columnconfigure(0, weight=1)
 
             move_count = tk.Label(self.mainFrame, text=f'переміщень : {self.game.move_count}', font = ("Ariel", 18))
             move_count.pack(fill='x')
@@ -128,8 +128,7 @@ class GUI:
                 case "left":
                     helpText="\u2190"
 
-
-            helpButton = tk.Button(self.mainFrame, text=helpText , font=("Ariel", 18), command=lambda: self.move_zero(directions) )
+            helpButton = tk.Button(self.mainFrame, text=helpText , font=("Ariel", 18), command=lambda: self.auto_move_zero(directions) )
             helpButton.pack(pady=5)
             menuButton = tk.Button(self.mainFrame, text="Головне Меню" , font=("Ariel", 18), command=self.draw_menu_frame)
             menuButton.pack(pady=20)
@@ -167,10 +166,19 @@ class GUI:
 
         self.mainFrame.pack(fill="x")
 
-
+        with open("completed_games.txt", "a") as f:
+            res = "\n================\n"
+            res += "field: \n"
+            res += str(self.game.grid.go_path([self.grid.opposite_move(move) for move in self.game.taken_steps]))
+            res += "----------------\n"
+            res += "solution: \n"
+            res += str(self.game.taken_steps)
+            res += "\n================\n"
+            f.write(res)
 
     def draw_menu_frame(self):
         self.game.move_count=0
+        self.game.taken_steps = []
         self.mainFrame.destroy()
         self.mainFrame = tk.Frame(self.root)
         
@@ -207,12 +215,20 @@ class GUI:
 
     def on_click(self, coords):
         zero_index = self.grid.listGrid.index(0)
-        element_index = (coords[0]+coords[1]*4)
-        distance = abs (zero_index - element_index)
+        element_index = (coords[0]+coords[1]*self.grid.size)
+        distance = zero_index - element_index
 
-        if ( distance == 4 or distance == 1 ):
+        if ( abs(distance) == 4 or abs(distance) == 1 ):
             self.game.move_count +=1 
-            print("1")
+            
+            if distance == 4:
+                self.game.taken_steps.append("up")
+            elif distance == -4:
+                self.game.taken_steps.append("down")
+            elif distance == 1:
+                self.game.taken_steps.append("left")
+            elif distance == -1:
+                self.game.taken_steps.append("right")
 
             self.grid.swap(zero_index, element_index)
 

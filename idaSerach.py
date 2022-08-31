@@ -25,27 +25,14 @@ class IdaSearch:
         min = math.inf
 
         for move in currentState.get_possible_moves():
-            if len(path) == 0 or self.opposite_move(move) != path[-1]:
+            if len(path) == 0 or self.grid.opposite_move(move) != path[-1]:
                 res = self.search(path + [move], bound)
                 if type(res) is type([]):
                     return res 
-                if res < min:
+                if res < min:   
                     min = res
         return min
 
-    def solved(self,grid, path ):
-        if path or path ==[]:
-            return grid.go_path(path).check_if_complete()
-        return False
 
-    def opposite_move(self, move):
-        if move == 'right':
-            return 'left'
-        if move == 'left':
-            return 'right'
-        if move == 'up':
-            return 'down'
-        if move == 'down':
-            return 'up'
 
     
