@@ -1,0 +1,11 @@
+
+================
+field: 
+   1   8   0   7
+   5   4  12   6
+  10  11   3   2
+   9  13  14  15
+----------------
+solution: 
+['left', 'down', 'down', 'right', 'up', 'right', 'down', 'left', 'up', 'left', 'down', 'right', 'up', 'right', 'up', 'left', 'left', 'down', 'right', 'right', 'up', 'left', 'left', 'down', 'down', 'left', 'down']
+================

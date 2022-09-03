@@ -1,5 +1,6 @@
 import tkinter as tk
 import random
+from GameField import GameField
 
 class GameButton:
     def __init__(self, value, coords):
@@ -11,19 +12,18 @@ class GameButton:
             return tk.Button(frame, text="" , font=("Ariel", 18), state="disabled")
         return tk.Button(frame, text=str(self.value) , font=("Ariel", 18), command=lambda: func(self.coords))
 
-from Grid import Grid
+
 
 
 class GUI:
 
-    def __init__(self, grid, game):
-        self.grid = grid
+    def __init__(self, game):
         self.game = game
 
 
     def run(self):
         self.root = tk.Tk()
-        self.root.geometry("500x350")
+        self.root.geometry("500x390")
         self.root.resizable(False,False)
         self.root.title("гра в 15")
         self.mainFrame = tk.Frame(self.root)
@@ -32,17 +32,17 @@ class GUI:
 
         self.root.mainloop()
     
-    def get_game_button_grid(self,grid):
+    def get_game_button_grid(self,gameField):
         buttonList = []
 
-        for i in range(grid.size):
-            for j in range(grid.size):
-                buttonList.append(GameButton(grid.listGrid[j+i*4], (j, i)))
+        for i in range(gameField.size):
+            for j in range(gameField.size):
+                buttonList.append(GameButton(gameField.get_field_list()[j+i*4], (j, i)))
         
         return buttonList
 
     def draw_frame(self):        
-        if not self.grid.check_if_complete():
+        if not self.game.get_game_field().check_if_complete():
             self.draw_game_frame()
         else:                
             self.draw_win_frame()
@@ -50,37 +50,26 @@ class GUI:
     def start_rand_level(self):
         self.mainFrame.destroy()
         self.mainFrame = tk.Frame(self.root)
-        self.grid.shuffle_grid()
+        self.game.randomize_game_field()
         self.draw_frame()
 
-    def draw_level(self, level):
-        if level == 1:
-            self.grid = Grid(self.game.level1Grid.copy(), int(len(self.game.level1Grid)**0.5))
-            self.game.grid = self.grid
-            self.draw_frame()
-        elif level ==2:
-            self.grid = Grid(self.game.level2Grid.copy(), int(len(self.game.level1Grid)**0.5))
-            self.game.grid = self.grid
-            self.draw_frame()
-        elif level ==3:
-            self.grid = Grid(self.game.level3Grid.copy(), int(len(self.game.level1Grid)**0.5))
-            self.game.grid = self.grid
-            self.draw_frame()
+    def draw_level(self, level_id):
+        self.game.load_level(level_id)
+        self.draw_frame()
 
     def draw_game_frame(self):
         self.mainFrame.destroy()
         self.mainFrame = tk.Frame(self.root)
-        # self.mainFrame.columnconfigure(0, weight=1)
 
-        move_count = tk.Label(self.mainFrame, text=f'переміщень : {self.game.move_count}', font = ("Ariel", 18))
+        move_count = tk.Label(self.mainFrame, text=f'переміщень : {self.game.get_move_count()}', font = ("Ariel", 18))
         move_count.pack(fill='x')
 
         gameFrame = tk.Frame(self.mainFrame)
 
-        for i in range(self.grid.size):
+        for i in range(self.game.get_game_field().size):
                 gameFrame.columnconfigure(i, weight=1)
 
-        for button in self.get_game_button_grid(self.grid):
+        for button in self.get_game_button_grid(self.game.get_game_field()):
             button.get_tk_button(gameFrame, self.on_click).grid(column=button.coords[0], row=button.coords[1], sticky=tk.W + tk.E)
 
         gameFrame.pack(fill="x")
@@ -93,10 +82,10 @@ class GUI:
         self.mainFrame.pack(fill="x")
 
     def auto_move_zero(self, directions):
-        self.game.taken_steps.insert(0, directions[0])
+        self.game.new_step(directions[0])
         direction = directions.pop(0)
-        self.grid.move_zero(direction)
-        self.game.move_count+=1
+        self.game.make_move(direction)
+        self.game.increase_move_count()
         self.draw_game_frame_with_assist(directions)
         
 
@@ -105,15 +94,15 @@ class GUI:
             self.mainFrame.destroy()
             self.mainFrame = tk.Frame(self.root)
 
-            move_count = tk.Label(self.mainFrame, text=f'переміщень : {self.game.move_count}', font = ("Ariel", 18))
+            move_count = tk.Label(self.mainFrame, text=f'переміщень : {self.game.get_move_count()}', font = ("Ariel", 18))
             move_count.pack(fill='x')
 
             gameFrame = tk.Frame(self.mainFrame)
 
-            for i in range(self.grid.size):
+            for i in range(self.game.get_game_field().size):
                     gameFrame.columnconfigure(i, weight=1)
 
-            for button in self.get_game_button_grid(self.grid):
+            for button in self.get_game_button_grid(self.game.get_game_field()):
                 button.get_tk_button(gameFrame, self.on_click).grid(column=button.coords[0], row=button.coords[1], sticky=tk.W + tk.E)
 
             gameFrame.pack(fill="x")
@@ -143,15 +132,15 @@ class GUI:
         self.mainFrame = tk.Frame(self.root)
         self.mainFrame.columnconfigure(0, weight=1)
 
-        move_count = tk.Label(self.mainFrame, text=f'переміщень : {self.game.move_count}', font = ("Ariel", 18))
+        move_count = tk.Label(self.mainFrame, text=f'переміщень : {self.game.get_move_count()}', font = ("Ariel", 18))
         move_count.pack(fill='x')
 
         winFrame = tk.Frame(self.mainFrame)
 
-        for i in range(self.grid.size):
+        for i in range(self.game.get_game_field().size):
                 winFrame.columnconfigure(i, weight=1)
 
-        for button in self.get_game_button_grid(self.grid):
+        for button in self.get_game_button_grid(self.game.get_game_field()):
             tkButton = button.get_tk_button(winFrame, self.on_click)
             tkButton["state"]="disabled"
             tkButton.grid(column=button.coords[0], row=button.coords[1], sticky=tk.W + tk.E)
@@ -164,21 +153,19 @@ class GUI:
         menuButton = tk.Button(self.mainFrame, text="Головне Меню" , font=("Ariel", 18), command=self.draw_menu_frame)
         menuButton.pack(pady=10)
 
+        saveButton = tk.Button(self.mainFrame, text="Зберегти Розв`язок" , font=("Ariel", 18), command=self.save)
+        saveButton.pack(pady=10)
+
         self.mainFrame.pack(fill="x")
 
-        with open("completed_games.txt", "a") as f:
-            res = "\n================\n"
-            res += "field: \n"
-            res += str(self.game.grid.go_path([self.grid.opposite_move(move) for move in self.game.taken_steps]))
-            res += "----------------\n"
-            res += "solution: \n"
-            res += str(self.game.taken_steps)
-            res += "\n================\n"
-            f.write(res)
+
+    def save(self):
+        self.game.save()
+        self.draw_menu_frame()
 
     def draw_menu_frame(self):
-        self.game.move_count=0
-        self.game.taken_steps = []
+        self.game.reset_move_count()
+        self.game.reset_taken_steps()
         self.mainFrame.destroy()
         self.mainFrame = tk.Frame(self.root)
         
@@ -195,13 +182,13 @@ class GUI:
         label = tk.Label(levelsFrame, text="Рівні", font=("Arial", 18), pady=20)
         label.grid(column=1, row=0,sticky=tk.W + tk.E)
 
-        lv1Button = tk.Button(levelsFrame, text="Рівень 1" , font=("Ariel", 18), command=lambda: self.draw_level(1))
+        lv1Button = tk.Button(levelsFrame, text="Рівень 1" , font=("Ariel", 18), command=lambda: self.draw_level(0))
         lv1Button.grid(column=0, row=1)
 
-        lv2Button = tk.Button(levelsFrame, text="Рівень 2" , font=("Ariel", 18), command=lambda: self.draw_level(2))
+        lv2Button = tk.Button(levelsFrame, text="Рівень 2" , font=("Ariel", 18), command=lambda: self.draw_level(1))
         lv2Button.grid(column=1, row=1)
 
-        lv3Button = tk.Button(levelsFrame, text="Рівень 3" , font=("Ariel", 18), command=lambda: self.draw_level(3))
+        lv3Button = tk.Button(levelsFrame, text="Рівень 3" , font=("Ariel", 18), command=lambda: self.draw_level(2))
         lv3Button.grid(column=3, row=1)
 
         levelsFrame.grid(column=0, row=1)
@@ -214,24 +201,9 @@ class GUI:
 
 
     def on_click(self, coords):
-        zero_index = self.grid.listGrid.index(0)
-        element_index = (coords[0]+coords[1]*self.grid.size)
-        distance = zero_index - element_index
-
-        if ( abs(distance) == 4 or abs(distance) == 1 ):
-            self.game.move_count +=1 
-            
-            if distance == 4:
-                self.game.taken_steps.append("up")
-            elif distance == -4:
-                self.game.taken_steps.append("down")
-            elif distance == 1:
-                self.game.taken_steps.append("left")
-            elif distance == -1:
-                self.game.taken_steps.append("right")
-
-            self.grid.swap(zero_index, element_index)
-
+        
+        if self.game.attempt_move(coords):
+        
             self.draw_frame()
 
 
